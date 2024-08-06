@@ -1,0 +1,200 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+generator client {
+  provider = "prisma-client-js"
+  //previewFeatures = ["mongodb"]
+}
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+model users{
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  email       String      @unique
+  firstName   String
+  lastName    String
+  mobile      String
+  password    String
+  photo       String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt @default(now())
+}
+model otps{
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  email       String
+  otp         String
+  //status      Float
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt @default(now())
+}
+
+model categories{
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  UserEmail   String
+  Name        String
+  products    products[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt @default(now())
+}
+
+model brands{
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  UserEmail   String
+  Name        String
+  products    products[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt @default(now())
+}
+
+model products{
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  UserEmail   String
+  Name        String
+  Unit        String
+  Details     String
+  CategoryID  String      @db.ObjectId
+  BrandID     String      @db.ObjectId
+  purchase_products purchase_products[]
+  sale_products sale_products[]
+  return_products return_products[]
+  categories  categories  @relation(fields: [CategoryID],references: [id], onDelete: Restrict, onUpdate: Cascade)
+  brands      brands      @relation(fields: [BrandID],references: [id], onDelete: Restrict, onUpdate: Cascade)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt @default(now())
+}
+
+model suppliers{
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  UserEmail   String
+  Name        String
+  Address     String
+  Phone       String
+  Email       String
+  purchase_summarys purchase_summarys[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt @default(now())
+}
+
+model customers{
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  UserEmail   String
+  Name        String
+  Address     String
+  Phone       String
+  Email       String
+  return_summarys return_summarys[]
+  sale_summarys sale_summarys[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt @default(now())
+}
+
+model expense_types{
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  UserEmail   String
+  Name        String
+  expenses    expenses[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt @default(now())
+}
+
+model expenses{
+  id          String            @id @default(auto()) @map("_id") @db.ObjectId
+  UserEmail   String
+  Amount      Float
+  TypeID      String            @db.ObjectId
+  Note        String
+  expense_types expense_types   @relation(fields: [TypeID],references: [id], onDelete: Restrict, onUpdate: Cascade)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt @default(now())
+}
+model purchase_summarys{
+  id            String            @id @default(auto()) @map("_id") @db.ObjectId
+  UserEmail     String
+  VatTax        Float
+  Discount      Float
+  OtherCost     Float
+  ShippingCost  Float
+  GrandTotal    Float
+  Note          String
+  SupplierID    String            @db.ObjectId
+  suppliers     suppliers         @relation(fields: [SupplierID],references: [id], onDelete: Restrict, onUpdate: Cascade)
+  purchase_products  purchase_products[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt @default(now())
+}
+
+model purchase_products{
+  id            String            @id @default(auto()) @map("_id") @db.ObjectId
+  UserEmail     String
+  Qty           Int
+  UnitCost      Float
+  Total         Float
+  PurchaseID    String            @db.ObjectId
+  ProductID     String            @db.ObjectId
+  purchase_summarys purchase_summarys @relation(fields: [PurchaseID], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  products products @relation(fields: [ProductID],references: [id], onDelete: Restrict, onUpdate: Cascade)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt @default(now())
+}
+
+model sale_summarys{
+  id            String            @id @default(auto()) @map("_id") @db.ObjectId
+  UserEmail     String
+  VatTax        Float
+  Discount      Float
+  OtherCost     Float
+  ShippingCost  Float
+  GrandTotal    Float
+  Note          String
+  CustomerID    String            @db.ObjectId
+  sale_products sale_products[]
+  customers customers             @relation(fields: [CustomerID],references: [id], onDelete: Restrict, onUpdate: Cascade)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt @default(now())
+}
+model sale_products{
+  id            String            @id @default(auto()) @map("_id") @db.ObjectId
+  UserEmail     String
+  Qty           Int
+  UnitCost      Float
+  Total         Float
+  SaleID        String            @db.ObjectId
+  ProductID     String            @db.ObjectId
+  sale_summarys sale_summarys     @relation(fields: [SaleID],references: [id], onDelete: Restrict, onUpdate: Cascade)
+  products products               @relation(fields: [ProductID],references: [id], onDelete: Restrict, onUpdate: Cascade)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt @default(now())
+}
+
+model return_summarys{
+  id            String            @id @default(auto()) @map("_id") @db.ObjectId
+  UserEmail     String
+  VatTax        Float
+  Discount      Float
+  OtherCost     Float
+  ShippingCost  Float
+  GrandTotal    Float
+  Note          String
+  return_products return_products[]
+  CustomerID    String            @db.ObjectId
+  customers customers             @relation(fields: [CustomerID],references: [id], onDelete: Restrict, onUpdate: Cascade)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt @default(now())
+}
+
+model return_products{
+  id            String            @id @default(auto()) @map("_id") @db.ObjectId
+  UserEmail     String
+  Qty           Int
+  UnitCost      Float
+  Total         Float
+  ReturnID      String            @db.ObjectId
+  ProductID     String            @db.ObjectId
+  products products               @relation(fields: [ProductID],references: [id], onDelete: Restrict, onUpdate: Cascade)
+  return_summarys return_summarys @relation(fields: [ReturnID],references: [id], onDelete: Restrict, onUpdate: Cascade)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt @default(now())
+}
